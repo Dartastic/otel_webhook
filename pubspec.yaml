@@ -2,7 +2,7 @@ name: otel_webhook
 description: >-
   OpenTelemetry instrumentation for webhook by Dartastic.io. Adds standard
   OpenTelemetry observability to applications that use webhook.
-version: 0.1.0-wip
+version: 0.1.0
 repository: https://github.com/dartastic/otel_webhook
 homepage: https://dartastic.io
 
