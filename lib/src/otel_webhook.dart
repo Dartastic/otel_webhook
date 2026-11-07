@@ -1,21 +1,24 @@
-// Licensed under the Dartastic Pro Software License Agreement.
+// Licensed under the Apache License, Version 2.0
 // Copyright 2025-2026 Mindful Software LLC d/b/a Dartastic.io, All rights reserved.
 
-import 'package:dartastic_opentelemetry/dartastic_opentelemetry.dart';
+import 'package:dartastic_opentelemetry_api/dartastic_opentelemetry_api.dart';
 
 import 'otel_webhook_suppression.dart';
 
 const _tracerName = 'dartastic_otel_libs_webhook';
 
-Tracer _tracer() => OTel.tracerProvider().getTracer(_tracerName);
+APITracer _tracer() => OTelAPI.tracerProvider().getTracer(_tracerName);
 
 /// Pair returned from `tracedWebhookPost` callback.
 class WebhookPostResult<T> {
+  /// Creates a result.
   const WebhookPostResult({
     required this.value,
     this.statusCode,
     this.attempt,
   });
+
+  /// The value returned to the caller.
   final T value;
   final int? statusCode;
   final int? attempt;
@@ -53,28 +56,28 @@ Future<T> tracedWebhookPost<T>({
   final span = _tracer().startSpan(
     'webhook POST $dest',
     kind: SpanKind.producer,
-    attributes: OTel.attributesFromMap(m),
+    attributes: OTelAPI.attributesFromMap(m),
   );
   try {
     final r = await invoke();
     final extras = <Attribute<Object>>[];
     if (r.statusCode != null) {
       extras.add(
-        OTel.attributeInt('http.response.status_code', r.statusCode!),
+        OTelAPI.attributeInt('http.response.status_code', r.statusCode!),
       );
       if (r.statusCode! >= 400) {
         span.setStatus(SpanStatusCode.Error, 'HTTP ${r.statusCode}');
       }
     }
     if (r.attempt != null) {
-      extras.add(OTel.attributeInt('webhook.attempt', r.attempt!));
+      extras.add(OTelAPI.attributeInt('webhook.attempt', r.attempt!));
     }
-    if (extras.isNotEmpty) span.addAttributes(OTel.attributes(extras));
+    if (extras.isNotEmpty) span.addAttributes(OTelAPI.attributes(extras));
     return r.value;
   } catch (e, st) {
-    span.addAttributes(OTel.attributes([
-      OTel.attributeString(
-        ErrorResource.errorType.key,
+    span.addAttributes(OTelAPI.attributes([
+      OTelAPI.attributeString(
+        ErrorAttributes.errorType.key,
         e.runtimeType.toString(),
       ),
     ]));
